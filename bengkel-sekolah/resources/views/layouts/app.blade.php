@@ -3,68 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Booking Bengkel Sekolah</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        body { background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background-color: #2c3e50; color: #fff; }
-        .sidebar a { color: #bdc3c7; text-decoration: none; padding: 12px 20px; display: block; border-radius: 6px; margin-bottom: 4px; }
-        .sidebar a:hover, .sidebar a.active { background-color: #34495e; color: #fff; }
-    </style>
+    <title>Bengkel App</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-3 col-lg-2 sidebar p-3">
-            <h4 class="text-center fw-bold text-white mb-4"><i class="fa-solid fa-wrench me-2"></i>Bengkel App</h4>
-            <div class="small text-muted mb-2 px-2 text-uppercase fw-bold">Menu Utama</div>
-            <a href="{{ route('dashboard.index') }}" class="{{ request()->routeIs('dashboard.index') ? 'active' : '' }}"><i class="fa-solid fa-gauge me-2"></i>Dashboard</a>
-            <a href="{{ route('bookings.index') }}" class="{{ request()->routeIs('bookings.*') ? 'active' : '' }}"><i class="fa-solid fa-calendar-check me-2"></i>Booking Servis</a>
-            
-            <div class="small text-muted mt-4 mb-2 px-2 text-uppercase fw-bold">Master Data</div>
-            <a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}"><i class="fa-solid fa-users me-2"></i>Pelanggan</a>
-            <a href="{{ route('vehicles.index') }}" class="{{ request()->routeIs('vehicles.*') ? 'active' : '' }}"><i class="fa-solid fa-motorcycle me-2"></i>Kendaraan</a>
-            <a href="{{ route('brands.index') }}" class="{{ request()->routeIs('brands.*') ? 'active' : '' }}"><i class="fa-solid fa-tags me-2"></i>Merek</a>
 
-            @if(Auth::check() && in_array(Auth::user()->role->role_name ?? '', ['Manager', 'Admin']))
-                <div class="small text-muted mt-4 mb-2 px-2 text-uppercase fw-bold">Pengaturan</div>
-                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}"><i class="fa-solid fa-user-gear me-2"></i>User Bengkel</a>
-            @endif
-
-            <hr class="my-4 border-secondary">
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="btn btn-danger w-100"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</button>
-            </form>
+<div class="wrapper">
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h4 class="fw-bold text-primary mb-0">Bengkel App</h4>
         </div>
 
-        <div class="col-md-9 col-lg-10 p-4">
-            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
-                <h4 class="fw-bold m-0">Sistem Booking Bengkel Sekolah</h4>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-primary px-3 py-2 fs-6">{{ Auth::user()->role->role_name ?? 'User' }}</span>
-                    <span class="fw-bold">{{ Auth::user()->full_name ?? 'Pengguna' }}</span>
+        <div class="px-3 py-3 border-bottom bg-light">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 38px; height: 38px; font-weight: bold;">
+                    {{ strtoupper(substr(Auth::user()->full_name ?? Auth::user()->username ?? 'A', 0, 1)) }}
+                </div>
+                <div class="overflow-hidden">
+                    <h6 class="mb-0 fw-bold text-truncate">{{ Auth::user()->full_name ?? Auth::user()->username ?? 'User' }}</h6>
+                    <small class="text-muted d-block text-truncate">{{ Auth::user()->role->role_name ?? 'Admin' }}</small>
                 </div>
             </div>
+        </div>
 
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
+        <ul class="list-unstyled components">
+            <li class="{{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
+                <a href="{{ route('dashboard.index') }}"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
+            </li>
+            <li class="{{ request()->routeIs('bookings.*') ? 'active' : '' }}">
+                <a href="{{ route('bookings.index') }}"><i class="fa-solid fa-calendar-check me-2"></i> Booking</a>
+            </li>
+            <li class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">
+                <a href="{{ route('customers.index') }}"><i class="fa-solid fa-users me-2"></i> Customer</a>
+            </li>
+            <li class="{{ request()->routeIs('vehicles.*') ? 'active' : '' }}">
+                <a href="{{ route('vehicles.index') }}"><i class="fa-solid fa-car me-2"></i> Vehicle</a>
+            </li>
+            <li class="{{ request()->routeIs('brands.*') ? 'active' : '' }}">
+                <a href="{{ route('brands.index') }}"><i class="fa-solid fa-tags me-2"></i> Brand</a>
+            </li>
+        </ul>
 
+        <div class="p-3 mt-auto">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger w-100 fw-bold">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <div id="content">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4 py-3">
+            <div class="container-fluid p-0">
+                <span class="navbar-text fw-bold text-dark fs-5">
+                    @yield('title', 'Dashboard')
+                </span>
+            </div>
+        </nav>
+
+        <div class="p-4">
             @yield('content')
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')
-
 </body>
 </html>

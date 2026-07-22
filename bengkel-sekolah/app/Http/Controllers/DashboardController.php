@@ -4,60 +4,54 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Set default filter tanggal (misal 30 hari terakhir jika tidak diisi)
-        $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
-        $endDate   = $request->input('end_date', now()->toDateString());
+        // 1. Ambil input tanggal tunggal (default: Hari ini)
+        $selectedDate = $request->input('date', Carbon::today()->format('Y-m-d'));
+        $targetCarbonDate = Carbon::parse($selectedDate);
 
-        // Base query dengan filter rentang tanggal
-        $query = Booking::whereBetween('booking_date', [$startDate, $endDate]);
+        // 2. Hitung Ringkasan Status Booking KHUSUS pada tanggal terpilih
+        $pendingCount    = Booking::whereDate('booking_date', $selectedDate)->where('status', 'Pending')->count();
+        $prosesCount     = Booking::whereDate('booking_date', $selectedDate)->where('status', 'Proses')->count();
+        $rescheduleCount = Booking::whereDate('booking_date', $selectedDate)->where('status', 'Reschedule')->count();
+        $finishCount     = Booking::whereDate('booking_date', $selectedDate)->where('status', 'Finish')->count();
 
-        // Hitung Summary Status untuk Card Dashboard
-        $countPending    = (clone $query)->where('status', 'Pending')->count();
-        $countProses     = (clone $query)->where('status', 'Proses')->count();
-        $countReschedule = (clone $query)->where('status', 'Reschedule')->count();
-        $countFinish     = (clone $query)->where('status', 'Finish')->count();
+        // 3. Buat Data Grafik Harian (7 Hari Terakhir hingga Tanggal Terpilih)
+        $chartLabels = [];
+        $chartData   = [];
 
-        // ----------------------------------------------------
-        // DATA PARETO CHART (Diurutkan dari terbanyak)
-        // ----------------------------------------------------
-        $paretoData = (clone $query)
-            ->select('status as category', DB::raw('count(*) as total'))
-            ->groupBy('status')
-            ->orderBy('total', 'desc')
-            ->get();
+        // Loop 7 hari ke belakang (misal dari H-6 sampai Tanggal Terpilih)
+        for ($i = 6; $i >= 0; $i--) {
+            $datePoint = $targetCarbonDate->copy()->subDays($i);
+            $dateString = $datePoint->format('Y-m-d');
 
-        $labels      = [];
-        $totals      = [];
-        $cumulatives = [];
+            // Format label tampilan grafik (contoh: "22 Jul" atau "Hari Ini")
+            if ($dateString === Carbon::today()->format('Y-m-d')) {
+                $chartLabels[] = 'Hari Ini (' . $datePoint->format('d/m') . ')';
+            } elseif ($dateString === Carbon::yesterday()->format('Y-m-d')) {
+                $chartLabels[] = 'Kemarin (' . $datePoint->format('d/m') . ')';
+            } else {
+                $chartLabels[] = $datePoint->format('d/m/Y');
+            }
 
-        $totalAllAll  = $paretoData->sum('total');
-        $runningTotal = 0;
-
-        foreach ($paretoData as $item) {
-            $labels[] = $item->category;
-            $totals[] = $item->total;
-
-            $runningTotal += $item->total;
-            $percent       = $totalAllAll > 0 ? round(($runningTotal / $totalAllAll) * 100, 2) : 0;
-            $cumulatives[] = $percent;
+            // Hitung total booking pada tanggal tersebut
+            $count = Booking::whereDate('booking_date', $dateString)->count();
+            $chartData[] = $count;
         }
 
         return view('dashboard.index', compact(
-            'startDate',
-            'endDate',
-            'countPending',
-            'countProses',
-            'countReschedule',
-            'countFinish',
-            'labels',
-            'totals',
-            'cumulatives'
+            'selectedDate',
+            'pendingCount',
+            'prosesCount',
+            'rescheduleCount',
+            'finishCount',
+            'chartLabels',
+            'chartData'
         ));
     }
 }
