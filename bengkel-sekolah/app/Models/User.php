@@ -9,8 +9,10 @@ class User extends Authenticatable
 {
     use Notifiable;
 
-    // Deklarasikan primary key khusus
-    protected $primaryKey = 'user_id';
+    protected $table = 'users';
+    
+    // Tentukan primary key kustom sesuai database phpMyAdmin kamu
+    protected $primaryKey = 'user_id'; 
 
     protected $fillable = [
         'username',
