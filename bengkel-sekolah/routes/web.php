@@ -42,16 +42,19 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/bookings/{id}/update-status', [BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
 
     // --- ROUTE TRASH (TEMPAT SAMPAH) BOOKING ---
-    // (Harus di atas Route::resource agar tidak terbaca sebagai {booking})
     Route::get('/bookings/trash', [BookingController::class, 'trash'])->name('bookings.trash');
     Route::post('/bookings/{id}/restore', [BookingController::class, 'restore'])->name('bookings.restore');
     Route::delete('/bookings/{id}/force-delete', [BookingController::class, 'forceDelete'])->name('bookings.forceDelete');
 
     // --- ROUTE TRASH (TEMPAT SAMPAH) CUSTOMER ---
-    // (Wajib di atas Route::resource('customers') agar tidak bentrok)
     Route::get('/customers/trash', [CustomerController::class, 'trash'])->name('customers.trash');
     Route::post('/customers/{id}/restore', [CustomerController::class, 'restore'])->name('customers.restore');
     Route::delete('/customers/{id}/force-delete', [CustomerController::class, 'forceDelete'])->name('customers.forceDelete');
+
+    // --- ROUTE TRASH (TEMPAT SAMPAH) VEHICLE ---
+    Route::get('/vehicles/trash', [VehicleController::class, 'trash'])->name('vehicles.trash');
+    Route::post('/vehicles/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
+    Route::delete('/vehicles/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.forceDelete');
 
     // CRUD Master Data & Booking
     Route::resource('bookings', BookingController::class);

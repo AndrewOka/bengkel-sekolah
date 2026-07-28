@@ -2,15 +2,10 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold">Data Kendaraan</h3>
-    <div>
-        <a href="{{ route('vehicles.trash') }}" class="btn btn-outline-secondary me-2">
-            <i class="fas fa-trash me-1"></i> Sampah
-        </a>
-        <a href="{{ route('vehicles.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i> Tambah Kendaraan
-        </a>
-    </div>
+    <h3 class="fw-bold">Sampah Data Kendaraan</h3>
+    <a href="{{ route('vehicles.index') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Kembali
+    </a>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -36,20 +31,23 @@
                                 <span class="badge bg-dark px-2 py-1">{{ $vehicle->plate_number ?? $vehicle->plat_nomor }}</span>
                             </td>
                             <td>
-                                {{ $vehicle->brand->brand_name ?? $vehicle->brand_name ?? '' }} - {{ $vehicle->model_name ?? $vehicle->model }}
+                                {{ $vehicle->brand->brand_name ?? '' }} - {{ $vehicle->model_name ?? '' }}
                             </td>
-                            <td>{{ $vehicle->customer->full_name ?? $vehicle->customer_name ?? '-' }}</td>
+                            <td>{{ $vehicle->customer->full_name ?? '-' }}</td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('vehicles.edit', $vehicle->vehicle_id ?? $vehicle->id) }}" class="btn btn-sm btn-outline-warning" title="Edit">
-                                        <i class="fas fa-edit me-1"></i> Edit
-                                    </a>
+                                    <form action="{{ route('vehicles.restore', $vehicle->vehicle_id ?? $vehicle->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Restore">
+                                            <i class="fas fa-rotate-left me-1"></i> Restore
+                                        </button>
+                                    </form>
 
-                                    <form action="{{ route('vehicles.destroy', $vehicle->vehicle_id ?? $vehicle->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kendaraan ini?')" class="d-inline">
+                                    <form action="{{ route('vehicles.forceDelete', $vehicle->vehicle_id ?? $vehicle->id) }}" method="POST" onsubmit="return confirm('Hapus permanen kendaraan ini?')" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
-                                            <i class="fas fa-trash me-1"></i> Hapus
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus Permanen">
+                                            <i class="fas fa-trash me-1"></i> Hapus Permanen
                                         </button>
                                     </form>
                                 </div>
@@ -57,7 +55,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">Belum ada data kendaraan.</td>
+                            <td colspan="5" class="text-center py-4 text-muted">Tidak ada data kendaraan di tempat sampah.</td>
                         </tr>
                     @endforelse
                 </tbody>

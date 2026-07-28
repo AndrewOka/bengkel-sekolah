@@ -9,95 +9,111 @@ use Illuminate\Http\Request;
 
 class VehicleController extends Controller
 {
-    // 1. Method index() untuk Menampilkan Daftar Kendaraan
+    // 1. Tampil Data Utama
     public function index()
     {
-        // Mengambil data kendaraan beserta relasi pelanggan dan merek
         $vehicles = Vehicle::with(['customer', 'brand'])->latest()->paginate(10);
-
         return view('vehicles.index', compact('vehicles'));
     }
 
-    // Helper untuk membuat Kode Kendaraan Otomatis (VH-0001, VH-0002, dst)
-    private function generateVehicleCode()
-    {
-        $lastVehicle = Vehicle::orderBy('vehicle_id', 'desc')->first();
-        if (!$lastVehicle) {
-            return 'VH-0001';
-        }
-        
-        $number = (int) substr($lastVehicle->vehicle_code, 3);
-        $newNumber = $number + 1;
-        
-        return 'VH-' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
-    }
-
-    // 2. Form Tambah Kendaraan (Kode terisi otomatis)
+    // 2. Form Tambah
     public function create()
     {
-        $vehicleCode = $this->generateVehicleCode();
-        $customers   = Customer::all();
-        $brands      = Brand::all();
-
-        return view('vehicles.create', compact('vehicleCode', 'customers', 'brands'));
+        $customers = Customer::all();
+        $brands = Brand::all();
+        return view('vehicles.create', compact('customers', 'brands'));
     }
 
-    // 3. Simpan Data Kendaraan Baru
+    // 3. Simpan Data
     public function store(Request $request)
     {
         $request->validate([
-            'customer_id'  => 'required|exists:customers,customer_id',
-            'brand_id'     => 'required|exists:brands,brand_id',
-            'plate_number' => 'required|string|unique:vehicles,plate_number',
-            'model'        => 'required|string|max:255',
+            'plate_number' => 'required|string|max:15|unique:vehicles,plate_number',
+            'customer_id'  => 'required',
+            'brand_id'     => 'required',
+            'model_name'   => 'required|string|max:100',
         ]);
 
-        $vehicleCode = $request->vehicle_code ?? $this->generateVehicleCode();
+        // Mengambil ID terakhir untuk urutan kode kendaraan
+        $latestId = Vehicle::withTrashed()->max('vehicle_id') ?? Vehicle::withTrashed()->max('id') ?? 0;
 
         Vehicle::create([
-            'vehicle_code' => $vehicleCode,
+            'vehicle_code' => $request->vehicle_code ?? 'VH-' . str_pad($latestId + 1, 4, '0', STR_PAD_LEFT),
+            'plate_number' => $request->plate_number,
             'customer_id'  => $request->customer_id,
             'brand_id'     => $request->brand_id,
-            'plate_number' => $request->plate_number,
-            'model'        => $request->model,
+            'model_name'   => $request->model_name,
         ]);
 
-        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil ditambahkan!');
+        return redirect()->route('vehicles.index')->with('success', 'Data kendaraan berhasil ditambahkan!');
     }
 
-    // 4. Form Edit Kendaraan
+    // 4. Form Edit
     public function edit($id)
     {
-        $vehicle   = Vehicle::findOrFail($id);
+        $vehicle = Vehicle::where('vehicle_id', $id)->orWhere('id', $id)->firstOrFail();
         $customers = Customer::all();
-        $brands    = Brand::all();
-
+        $brands = Brand::all();
         return view('vehicles.edit', compact('vehicle', 'customers', 'brands'));
     }
 
-    // 5. Update Data Kendaraan
+    // 5. Update Data
     public function update(Request $request, $id)
     {
-        $vehicle = Vehicle::findOrFail($id);
+        $vehicle = Vehicle::where('vehicle_id', $id)->orWhere('id', $id)->firstOrFail();
+        
+        // Ambil Primary Key asli yang dipakai model
+        $primaryKeyColumn = $vehicle->getKeyName();
+        $primaryKeyValue  = $vehicle->getKey();
 
         $request->validate([
-            'customer_id'  => 'required|exists:customers,customer_id',
-            'brand_id'     => 'required|exists:brands,brand_id',
-            'plate_number' => 'required|string|unique:vehicles,plate_number,' . $id . ',vehicle_id',
-            'model'        => 'required|string|max:255',
+            'plate_number' => 'required|string|max:15|unique:vehicles,plate_number,' . $primaryKeyValue . ',' . $primaryKeyColumn,
+            'customer_id'  => 'required',
+            'brand_id'     => 'required',
+            'model_name'   => 'required|string|max:100',
         ]);
 
-        $vehicle->update($request->only(['customer_id', 'brand_id', 'plate_number', 'model']));
+        $vehicle->update([
+            'plate_number' => $request->plate_number,
+            'customer_id'  => $request->customer_id,
+            'brand_id'     => $request->brand_id,
+            'model_name'   => $request->model_name,
+        ]);
 
         return redirect()->route('vehicles.index')->with('success', 'Data kendaraan berhasil diperbarui!');
     }
 
-    // 6. Hapus Data Kendaraan
+    // 6. Hapus Ke Sampah (Soft Delete)
     public function destroy($id)
     {
-        $vehicle = Vehicle::findOrFail($id);
+        $vehicle = Vehicle::where('vehicle_id', $id)->orWhere('id', $id)->firstOrFail();
         $vehicle->delete();
 
-        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil dihapus!');
+        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil dipindahkan ke sampah!');
+    }
+
+    // 7. Menampilkan Halaman Trash
+    public function trash()
+    {
+        $vehicles = Vehicle::onlyTrashed()->with(['customer', 'brand'])->paginate(10);
+        return view('vehicles.trash', compact('vehicles'));
+    }
+
+    // 8. Restore Data dari Trash
+    public function restore($id)
+    {
+        $vehicle = Vehicle::onlyTrashed()->where('vehicle_id', $id)->orWhere('id', $id)->firstOrFail();
+        $vehicle->restore();
+
+        return redirect()->route('vehicles.trash')->with('success', 'Data kendaraan berhasil dipulihkan!');
+    }
+
+    // 9. Hapus Permanen
+    public function forceDelete($id)
+    {
+        $vehicle = Vehicle::onlyTrashed()->where('vehicle_id', $id)->orWhere('id', $id)->firstOrFail();
+        $vehicle->forceDelete();
+
+        return redirect()->route('vehicles.trash')->with('success', 'Data kendaraan dihapus permanen!');
     }
 }
