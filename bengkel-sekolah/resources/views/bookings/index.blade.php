@@ -3,9 +3,15 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold">Daftar Booking Servis</h3>
-    <a href="{{ route('bookings.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i> Buat Booking Baru</a>
+    <div>
+        <a href="{{ route('bookings.trash') }}" class="btn btn-outline-secondary me-2" title="Tempat Sampah">
+            <i class="fa-solid fa-trash-can"></i> Sampah
+        </a>
+        <a href="{{ route('bookings.create') }}" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i> Buat Booking Baru
+        </a>
+    </div>
 </div>
-
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
         <form method="GET" action="{{ route('bookings.index') }}" class="row g-3">
@@ -36,57 +42,66 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
+            <table class="table table-custom m-0 align-middle">
+                <thead>
                     <tr>
-                        <th>ID Booking</th>
+                        <th>No</th>
+                        <th>Kode Booking</th>
                         <th>Tanggal</th>
-                        <th>Customer</th>
-                        <th>Kendaraan / Plat</th>
+                        <th>Pelanggan</th>
+                        <th>Kendaraan</th>
                         <th>Status</th>
-                        <th>Update Status</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($bookings as $booking)
-                    <tr>
-                        <td><strong>#BK-{{ $booking->booking_id }}</strong></td>
-                        <td>{{ $booking->booking_date }}</td>
-                        <td>
-                            {{ $booking->vehicle->customer->full_name ?? '-' }} 
-                            <span class="badge bg-secondary">{{ $booking->vehicle->customer->customer_type ?? 'Umum' }}</span>
-                        </td>
-                        <td>{{ $booking->vehicle->model ?? '-' }} (<strong>{{ $booking->vehicle->plate_number ?? '-' }}</strong>)</td>
-                        <td>
-                            <span class="badge 
-                                {{ $booking->status == 'Pending' ? 'bg-warning text-dark' : '' }}
-                                {{ $booking->status == 'Proses' ? 'bg-info text-white' : '' }}
-                                {{ $booking->status == 'Reschedule' ? 'bg-secondary' : '' }}
-                                {{ $booking->status == 'Finish' ? 'bg-success' : '' }}">
-                                {{ $booking->status }}
-                            </span>
-                        </td>
-                        <td>
-                            <form action="{{ route('bookings.updateStatus', $booking->booking_id) }}" method="POST" class="d-flex gap-2">
-                                @csrf
-                                @method('PATCH')
-                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
-                                    @foreach(['Pending', 'Proses', 'Reschedule', 'Finish'] as $st)
-                                        <option value="{{ $st }}" {{ $booking->status == $st ? 'selected' : '' }}>{{ $st }}</option>
-                                    @endforeach
-                                </select>
-                            </form>
-                        </td>
-                    </tr>
+                    @forelse ($bookings as $index => $b)
+                        <tr>
+                            <td>{{ $bookings->firstItem() + $index }}</td>
+                            
+                            <td class="fw-bold text-primary">#BK-{{ $b->booking_id }}</td>
+                            
+                            <td>{{ \Carbon\Carbon::parse($b->booking_date)->format('d M Y') }}</td>
+                            
+                            <td>
+                                {{ $b->vehicle->customer->full_name ?? $b->vehicle->customer->name ?? '-' }}
+                            </td>
+                            
+                            <td>
+                                {{ $b->vehicle->model_name ?? $b->vehicle->model ?? '-' }} 
+                                <span class="fw-bold">({{ $b->vehicle->plate_number ?? '-' }})</span>
+                            </td>
+                            
+                            <td>
+                                <span class="badge bg-warning text-dark">{{ ucfirst($b->status) }}</span>
+                            </td>
+                            
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{{ route('bookings.edit', $b->booking_id) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                    </a>
+
+                                    <form action="{{ route('bookings.destroy', $b->booking_id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus booking ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fa-solid fa-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-4">Data booking tidak ditemukan.</td>
-                    </tr>
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">Belum ada data booking.</td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
+    
     <div class="card-footer bg-white pt-3">
         {{ $bookings->links() }}
     </div>

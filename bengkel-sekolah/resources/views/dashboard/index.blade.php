@@ -12,7 +12,7 @@
             </div>
             <div class="col-md-3">
                 <button type="submit" class="btn btn-primary w-100 fw-bold">
-                    <i class="fa-solid fa-filter me-1"></i> Filter Summary
+                    <i class="fa-solid fa-filter me-1"></i> Update Chart
                 </button>
             </div>
         </form>

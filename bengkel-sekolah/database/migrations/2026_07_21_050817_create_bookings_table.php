@@ -11,8 +11,9 @@ return new class extends Migration {
             $table->foreignId('vehicle_id')->constrained('vehicles', 'vehicle_id')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users', 'user_id')->onDelete('set null');
             $table->date('booking_date');
-            $table->enum('status', ['Pending', 'Proses', 'Reschedule', 'Finish'])->default('Pending');
+            $table->enum('status', ['Pending', 'Proses', 'Reschedule', 'Finish', 'Batal'])->default('Pending');
             $table->text('notes')->nullable();
+            $table->softDeletes(); // <-- Menambahkan kolom deleted_at untuk Soft Delete
             $table->timestamps();
         });
     }

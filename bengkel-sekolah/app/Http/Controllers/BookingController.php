@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Vehicle;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -18,7 +19,8 @@ class BookingController extends Controller
             $query->whereHas('vehicle', function ($q) use ($search) {
                 $q->where('plate_number', 'like', "%{$search}%")
                   ->orWhereHas('customer', function ($c) use ($search) {
-                      $c->where('full_name', 'like', "%{$search}%");
+                      $c->where('full_name', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%");
                   });
             });
         }
@@ -37,43 +39,103 @@ class BookingController extends Controller
         return view('bookings.index', compact('bookings'));
     }
 
-    public function create() {
+    public function create() 
+    {
         $vehicles = Vehicle::with('customer')->get();
         return view('bookings.create', compact('vehicles'));
     }
 
     public function store(Request $request)
     {
-        // Validasi Tanggal >= Hari Ini
         $request->validate([
-            'vehicle_id' => 'required|exists:vehicles,vehicle_id',
+            'vehicle_id'   => 'required|exists:vehicles,vehicle_id',
             'booking_date' => 'required|date|after_or_equal:today',
-            'notes' => 'nullable|string',
+            'notes'        => 'nullable|string',
         ], [
-            'booking_date.after_or_equal' => 'Tanggal booking tidak boleh di masa lalu (harus ≥ hari ini).'
+            'booking_date.after_or_equal' => 'Tanggal booking tidak boleh di masa lalu (harus >= hari ini).'
         ]);
 
         Booking::create([
-            'vehicle_id' => $request->vehicle_id,
-            'user_id' => auth()->id(),
+            'vehicle_id'   => $request->vehicle_id,
+            'user_id'      => auth()->id(),
             'booking_date' => $request->booking_date,
-            'status' => 'Pending',
-            'notes' => $request->notes,
+            'status'       => 'Pending',
+            'notes'        => $request->notes,
         ]);
 
         return redirect()->route('bookings.index')->with('success', 'Booking baru berhasil dibuat');
     }
 
+    public function edit($id)
+    {
+        $booking   = Booking::where('booking_id', $id)->firstOrFail();
+        $customers = Customer::all();
+        $vehicles  = Vehicle::with('customer')->get();
+
+        return view('bookings.edit', compact('booking', 'customers', 'vehicles'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $booking = Booking::where('booking_id', $id)->firstOrFail();
+
+        $request->validate([
+            'vehicle_id'   => 'required|exists:vehicles,vehicle_id',
+            'booking_date' => 'required|date',
+            'status'       => 'required|in:Pending,Proses,Reschedule,Finish,Batal',
+            'notes'        => 'nullable|string',
+        ]);
+
+        $booking->update([
+            'vehicle_id'   => $request->vehicle_id,
+            'booking_date' => $request->booking_date,
+            'status'       => $request->status,
+            'notes'        => $request->notes,
+        ]);
+
+        return redirect()->route('bookings.index')->with('success', 'Data booking berhasil diperbarui!');
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:Pending,Proses,Reschedule,Finish'
+            'status' => 'required|in:Pending,Proses,Reschedule,Finish,Batal'
         ]);
 
-        // Cari berdasarkan booking_id sesuai primary key di ERD
         $booking = Booking::where('booking_id', $id)->firstOrFail();
         $booking->update(['status' => $request->status]);
 
         return redirect()->back()->with('success', 'Status booking berhasil diubah');
+    }
+
+    public function destroy($id)
+    {
+        $booking = Booking::where('booking_id', $id)->firstOrFail();
+        $booking->delete(); // Soft delete
+
+        return redirect()->route('bookings.index')->with('success', 'Booking berhasil dipindahkan ke tempat sampah!');
+    }
+
+    // --- FITUR TRASH / SAMPAH ---
+    public function trash()
+    {
+        $bookings = Booking::onlyTrashed()->with(['vehicle.customer'])->latest()->paginate(10);
+        return view('bookings.trash', compact('bookings'));
+    }
+
+    public function restore($id)
+    {
+        $booking = Booking::onlyTrashed()->where('booking_id', $id)->firstOrFail();
+        $booking->restore();
+
+        return redirect()->route('bookings.trash')->with('success', 'Data booking berhasil dikembalikan!');
+    }
+
+    public function forceDelete($id)
+    {
+        $booking = Booking::onlyTrashed()->where('booking_id', $id)->firstOrFail();
+        $booking->forceDelete();
+
+        return redirect()->route('bookings.trash')->with('success', 'Data booking berhasil dihapus permanen!');
     }
 }

@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         // 2. Seed Default Users
         User::create([
             'username'      => 'manager',
-            'password'      => Hash::make('password123'),
+            'password'      => Hash::make('manager123'),
             'full_name'     => 'Manager Bengkel',
             'role_id'       => $roleManager->role_id,
             'is_active'     => true,
@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'username'      => 'admin',
-            'password'      => Hash::make('password123'),
+            'password'      => Hash::make('admin123'),
             'full_name'     => 'Admin Bengkel',
             'role_id'       => $roleAdmin->role_id,
             'is_active'     => true,
@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'username'      => 'staff',
-            'password'      => Hash::make('password123'),
+            'password'      => Hash::make('staff123'),
             'full_name'     => 'Staff Bengkel',
             'role_id'       => $roleStaff->role_id,
             'is_active'     => true,
