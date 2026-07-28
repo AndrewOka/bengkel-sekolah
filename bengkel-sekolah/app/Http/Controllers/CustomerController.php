@@ -7,95 +7,75 @@ use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    // 1. Method index() untuk Menampilkan Daftar Pelanggan
+    // 1. Menampilkan Daftar Pelanggan
     public function index()
     {
         $customers = Customer::latest()->paginate(10);
         return view('customers.index', compact('customers'));
     }
 
-    // Helper untuk membuat Kode Pelanggan Otomatis (CUST-0001, CUST-0002, dst)
-    private function generateCustomerCode()
-    {
-        $lastCustomer = Customer::orderBy('customer_id', 'desc')->first();
-        if (!$lastCustomer) {
-            return 'CUST-0001';
-        }
-        
-        $number = (int) substr($lastCustomer->customer_code ?? 'CUST-0000', 5);
-        $newNumber = $number + 1;
-        
-        return 'CUST-' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
-    }
+    // 2. Menampilkan Form Tambah Pelanggan
+    // 2. Menampilkan Form Tambah Pelanggan
+// 2. Menampilkan Form Tambah Pelanggan dengan Kode Otomatis
+public function create()
+{
+    // Hitung data yang aktif saja + 1
+    $nextNumber = Customer::count() + 1;
 
-    // 2. Form Tambah Pelanggan
-    public function create()
-    {
-        $customerCode = $this->generateCustomerCode();
-        return view('customers.create', compact('customerCode'));
-    }
+    // Sesuai ERD: CUST-001 (atau CUST-0001)
+    $customerCode = 'CUST-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
-    // 3. Simpan Data Pelanggan Baru
+    return view('customers.create', compact('customerCode'));
+}
+    // 3. Menyimpan Data Pelanggan Baru
     public function store(Request $request)
     {
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'phone'     => 'required|numeric|digits_between:7,13',
-            'type'      => 'nullable|string',
-        ], [
-            'phone.numeric'        => 'No. Telepon harus berupa angka!',
-            'phone.digits_between' => 'No. Telepon minimal 7 digit dan maksimal 13 digit!',
+            'customer_code' => 'required|unique:customers,customer_code',
+            'full_name'     => 'required|string|max:255',
+            'phone'         => 'required|string|max:15',
+            'customer_type'  => 'required|in:Siswa,Guru',
         ]);
 
-        $customerCode = $request->customer_code ?? $this->generateCustomerCode();
+        Customer::create($request->all());
 
-        Customer::create([
-            'customer_code' => $customerCode,
-            'full_name'     => $request->full_name,
-            'phone'         => $request->phone,
-            'type'          => $request->type ?? $request->customer_type ?? 'Siswa',
-        ]);
-
-        return redirect()->route('customers.index')->with('success', 'Pelanggan berhasil ditambahkan!');
+        return redirect()->route('customers.index')->with('success', 'Pelanggan berhasil ditambahkan.');
     }
 
-    // 4. Form Edit Pelanggan
+    // 4. Menampilkan Form Edit Pelanggan
     public function edit($id)
     {
-        $customer = Customer::where('customer_id', $id)->orWhere('id', $id)->firstOrFail();
+        // PERBAIKAN: Cari berdasarkan customer_id
+        $customer = Customer::where('customer_id', $id)->firstOrFail();
         return view('customers.edit', compact('customer'));
     }
 
-    // 5. Update Data Pelanggan
+    // 5. Mengupdate Data Pelanggan
     public function update(Request $request, $id)
     {
+        // PERBAIKAN: Cari berdasarkan customer_id
+        $customer = Customer::where('customer_id', $id)->firstOrFail();
+
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'phone'     => 'required|numeric|digits_between:7,13',
-            'type'      => 'nullable|string',
-        ], [
-            'phone.numeric'        => 'No. Telepon harus berupa angka!',
-            'phone.digits_between' => 'No. Telepon minimal 7 digit dan maksimal 13 digit!',
+            'customer_code' => 'required|unique:customers,customer_code,' . $customer->customer_id . ',customer_id',
+            'full_name'     => 'required|string|max:255',
+            'phone'         => 'required|string|max:15',
+            'customer_type'  => 'required|in:Siswa,Guru',
         ]);
 
-        $customer = Customer::where('customer_id', $id)->orWhere('id', $id)->firstOrFail();
-        
-        $customer->update([
-            'full_name' => $request->full_name,
-            'phone'     => $request->phone,
-            'type'      => $request->type ?? $request->customer_type ?? $customer->type,
-        ]);
+        $customer->update($request->all());
 
-        return redirect()->route('customers.index')->with('success', 'Data pelanggan berhasil diperbarui!');
+        return redirect()->route('customers.index')->with('success', 'Data pelanggan berhasil diperbarui.');
     }
 
-    // 6. Hapus Pelanggan
+    // 6. Hapus Sementara (Soft Delete)
     public function destroy($id)
     {
-        $customer = Customer::where('customer_id', $id)->orWhere('id', $id)->firstOrFail();
+        // PERBAIKAN: Cari berdasarkan customer_id (Baris 95)
+        $customer = Customer::where('customer_id', $id)->firstOrFail();
         $customer->delete();
 
-        return redirect()->route('customers.index')->with('success', 'Pelanggan berhasil dihapus!');
+        return redirect()->route('customers.index')->with('success', 'Pelanggan dipindahkan ke sampah.');
     }
 
     // 7. Menampilkan Halaman Trash (Tempat Sampah)
@@ -105,19 +85,21 @@ class CustomerController extends Controller
         return view('customers.trash', compact('customers'));
     }
 
-    // 8. Restore Data Pelanggan dari Trash
+    // 8. Mengembalikan Data dari Trash
     public function restore($id)
     {
-        $customer = Customer::onlyTrashed()->where('customer_id', $id)->orWhere('id', $id)->firstOrFail();
+        // PERBAIKAN: Cari berdasarkan customer_id
+        $customer = Customer::onlyTrashed()->where('customer_id', $id)->firstOrFail();
         $customer->restore();
 
         return redirect()->route('customers.trash')->with('success', 'Data pelanggan berhasil dipulihkan!');
     }
 
-    // 9. Hapus Permanen Pelanggan
+    // 9. Menghapus Permanen
     public function forceDelete($id)
     {
-        $customer = Customer::onlyTrashed()->where('customer_id', $id)->orWhere('id', $id)->firstOrFail();
+        // PERBAIKAN: Cari berdasarkan customer_id
+        $customer = Customer::onlyTrashed()->where('customer_id', $id)->firstOrFail();
         $customer->forceDelete();
 
         return redirect()->route('customers.trash')->with('success', 'Data pelanggan dihapus permanen!');

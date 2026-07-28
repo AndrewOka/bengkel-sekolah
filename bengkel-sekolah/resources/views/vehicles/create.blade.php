@@ -11,7 +11,7 @@
 
         <form action="{{ route('vehicles.store') }}" method="POST">
             @csrf
-           <div class="mb-3">
+         <div class="mb-3">
     <label class="form-label fw-bold">Kode Kendaraan</label>
     <input type="text" name="vehicle_code" class="form-control bg-light" value="{{ $vehicleCode }}" readonly>
 </div>
@@ -37,10 +37,16 @@
                 <label class="form-label fw-bold">Nomor Plat (Unik)</label>
                 <input type="text" name="plate_number" class="form-control" placeholder="DK 1234 AB" required>
             </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Model / Seri Motor</label>
-                <input type="text" name="model" class="form-control" placeholder="Vario 150 / Mio M3" required>
-            </div>
+          <div class="mb-3">
+    <label for="model_name" class="form-label fw-bold">Model / Seri Motor</label>
+    <input type="text" 
+           name="model_name" 
+           id="model_name" 
+           class="form-control" 
+           placeholder="Contoh: Vario 150 / Mio M3" 
+           value="{{ old('model_name') }}" 
+           required>
+</div>
             <button type="submit" class="btn btn-primary">Simpan Kendaraan</button>
         </form>
     </div>

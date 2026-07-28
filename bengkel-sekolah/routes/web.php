@@ -56,6 +56,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/vehicles/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
     Route::delete('/vehicles/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.forceDelete');
 
+    // --- ROUTE TRASH (TEMPAT SAMPAH) BRAND ---
+    Route::get('/brands/trash', [BrandController::class, 'trash'])->name('brands.trash');
+    Route::post('/brands/{id}/restore', [BrandController::class, 'restore'])->name('brands.restore');
+    Route::delete('/brands/{id}/force-delete', [BrandController::class, 'forceDelete'])->name('brands.forceDelete');
+
     // CRUD Master Data & Booking
     Route::resource('bookings', BookingController::class);
     Route::resource('customers', CustomerController::class);

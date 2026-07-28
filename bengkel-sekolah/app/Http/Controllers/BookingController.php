@@ -39,11 +39,17 @@ class BookingController extends Controller
         return view('bookings.index', compact('bookings'));
     }
 
-    public function create() 
-    {
-        $vehicles = Vehicle::with('customer')->get();
-        return view('bookings.create', compact('vehicles'));
-    }
+   public function create()
+{
+    $customers = Customer::all();
+    $vehicles = Vehicle::all();
+
+    // Hitung booking yang aktif + 1
+    $nextNumber = Booking::count() + 1;
+    $bookingCode = '#BK-' . $nextNumber;
+
+    return view('bookings.create', compact('bookingCode', 'customers', 'vehicles'));
+}
 
     public function store(Request $request)
     {

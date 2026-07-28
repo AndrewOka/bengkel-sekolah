@@ -45,7 +45,6 @@
             <table class="table table-custom m-0 align-middle">
                 <thead>
                     <tr>
-                        <th>No</th>
                         <th>Kode Booking</th>
                         <th>Tanggal</th>
                         <th>Pelanggan</th>
@@ -57,9 +56,8 @@
                 <tbody>
                     @forelse ($bookings as $index => $b)
                         <tr>
-                            <td>{{ $bookings->firstItem() + $index }}</td>
                             
-                            <td class="fw-bold text-primary">#BK-{{ $b->booking_id }}</td>
+                            <td class="fw-bold text-primary">BK-{{ $b->booking_id }}</td>
                             
                             <td>{{ \Carbon\Carbon::parse($b->booking_date)->format('d M Y') }}</td>
                             

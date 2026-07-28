@@ -11,9 +11,14 @@
 
         <form action="{{ route('customers.store') }}" method="POST">
             @csrf
-           <div class="mb-3">
-    <label class="form-label fw-bold">Kode Pelanggan</label>
-    <input type="text" name="customer_code" class="form-control bg-light" value="{{ $customerCode }}" readonly>
+          <div class="mb-3">
+    <label for="customer_code" class="form-label fw-bold">Kode Pelanggan</label>
+    <input type="text" 
+           name="customer_code" 
+           id="customer_code" 
+           class="form-control bg-light" 
+           value="{{ $customerCode }}" 
+           readonly>
 </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Nama Lengkap</label>
