@@ -2,15 +2,10 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold">Data Pelanggan (Siswa / Guru)</h3>
-    <div>
-        <a href="{{ route('customers.trash') }}" class="btn btn-outline-secondary me-2">
-            <i class="fas fa-trash me-1"></i> Sampah
-        </a>
-        <a href="{{ route('customers.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i> Tambah Pelanggan
-        </a>
-    </div>
+    <h3 class="fw-bold">Sampah Data Pelanggan</h3>
+    <a href="{{ route('customers.index') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Kembali
+    </a>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -22,7 +17,6 @@
                         <th class="py-3 ps-3 text-dark fw-bold">Kode Pelanggan</th>
                         <th class="py-3 text-dark fw-bold">Nama Lengkap</th>
                         <th class="py-3 text-dark fw-bold">No. Telepon</th>
-                        <th class="py-3 text-dark fw-bold">Tipe Pelanggan</th>
                         <th class="py-3 text-center text-dark fw-bold">Aksi</th>
                     </tr>
                 </thead>
@@ -34,20 +28,20 @@
                             </td>
                             <td>{{ $customer->full_name ?? $customer->name }}</td>
                             <td>{{ $customer->phone ?? $customer->phone_number ?? '-' }}</td>
-                            <td>
-                                <span class="badge bg-info text-white">{{ $customer->type ?? $customer->customer_type ?? 'Siswa' }}</span>
-                            </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('customers.edit', $customer->customer_id ?? $customer->id) }}" class="btn btn-sm btn-outline-warning" title="Edit">
-                                        <i class="fas fa-edit me-1"></i> Edit
-                                    </a>
+                                    <form action="{{ route('customers.restore', $customer->customer_id ?? $customer->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Restore">
+                                            <i class="fas fa-rotate-left me-1"></i> Restore
+                                        </button>
+                                    </form>
 
-                                    <form action="{{ route('customers.destroy', $customer->customer_id ?? $customer->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pelanggan ini?')" class="d-inline">
+                                    <form action="{{ route('customers.forceDelete', $customer->customer_id ?? $customer->id) }}" method="POST" onsubmit="return confirm('Hapus permanen pelanggan ini?')" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
-                                            <i class="fas fa-trash me-1"></i> Hapus
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus Permanen">
+                                            <i class="fas fa-trash me-1"></i> Hapus Permanen
                                         </button>
                                     </form>
                                 </div>
@@ -55,7 +49,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">Belum ada data pelanggan.</td>
+                            <td colspan="4" class="text-center py-4 text-muted">Tidak ada data di tempat sampah.</td>
                         </tr>
                     @endforelse
                 </tbody>

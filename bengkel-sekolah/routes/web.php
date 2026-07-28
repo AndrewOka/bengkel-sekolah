@@ -47,6 +47,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/bookings/{id}/restore', [BookingController::class, 'restore'])->name('bookings.restore');
     Route::delete('/bookings/{id}/force-delete', [BookingController::class, 'forceDelete'])->name('bookings.forceDelete');
 
+    // --- ROUTE TRASH (TEMPAT SAMPAH) CUSTOMER ---
+    // (Wajib di atas Route::resource('customers') agar tidak bentrok)
+    Route::get('/customers/trash', [CustomerController::class, 'trash'])->name('customers.trash');
+    Route::post('/customers/{id}/restore', [CustomerController::class, 'restore'])->name('customers.restore');
+    Route::delete('/customers/{id}/force-delete', [CustomerController::class, 'forceDelete'])->name('customers.forceDelete');
+
     // CRUD Master Data & Booking
     Route::resource('bookings', BookingController::class);
     Route::resource('customers', CustomerController::class);

@@ -19,10 +19,20 @@
                 <label class="form-label fw-bold">Nama Lengkap</label>
                 <input type="text" name="full_name" class="form-control" value="{{ old('full_name') }}" required>
             </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">No. Telepon (7 - 13 Digit)</label>
-                <input type="text" name="phone" class="form-control" placeholder="08123456789" value="{{ old('phone') }}" required>
-            </div>
+           <div class="mb-3">
+    <label class="form-label fw-bold">No. Telepon</label>
+    <input 
+        type="text" 
+        name="phone" 
+        class="form-control @error('phone') is-invalid @enderror" 
+        value="{{ old('phone') }}" 
+        maxlength="13" 
+        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);" 
+        required>
+    @error('phone')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Tipe Pelanggan</label>
                 <select name="customer_type" class="form-select" required>
