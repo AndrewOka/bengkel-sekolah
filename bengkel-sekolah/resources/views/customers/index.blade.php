@@ -30,20 +30,21 @@
                     @forelse ($customers as $customer)
                         <tr>
                             <td class="fw-bold ps-3">
-                                CUST-{{ str_pad($customer->customer_id ?? $customer->id, 4, '0', STR_PAD_LEFT) }}
+                                {{-- PERBAIKAN: Panggil langsung kolom customer_code dari Database --}}
+                                {{ $customer->customer_code ?? 'CUST-'.str_pad($customer->customer_id, 4, '0', STR_PAD_LEFT) }}
                             </td>
-                            <td>{{ $customer->full_name ?? $customer->name }}</td>
-                            <td>{{ $customer->phone ?? $customer->phone_number ?? '-' }}</td>
+                            <td>{{ $customer->full_name }}</td>
+                            <td>{{ $customer->phone ?? '-' }}</td>
                             <td>
-                                <span class="badge bg-info text-white">{{ $customer->type ?? $customer->customer_type ?? 'Siswa' }}</span>
+                                <span class="badge bg-info text-white">{{ $customer->customer_type ?? 'Siswa' }}</span>
                             </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('customers.edit', $customer->customer_id ?? $customer->id) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                    <a href="{{ route('customers.edit', $customer->customer_id) }}" class="btn btn-sm btn-outline-warning" title="Edit">
                                         <i class="fas fa-edit me-1"></i> Edit
                                     </a>
 
-                                    <form action="{{ route('customers.destroy', $customer->customer_id ?? $customer->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pelanggan ini?')" class="d-inline">
+                                    <form action="{{ route('customers.destroy', $customer->customer_id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pelanggan ini?')" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">

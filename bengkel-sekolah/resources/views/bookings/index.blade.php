@@ -54,47 +54,49 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($bookings as $index => $b)
-                        <tr>
-                            
-                            <td class="fw-bold text-primary">BK-{{ $b->booking_id }}</td>
-                            
-                            <td>{{ \Carbon\Carbon::parse($b->booking_date)->format('d M Y') }}</td>
-                            
-                            <td>
-                                {{ $b->vehicle->customer->full_name ?? $b->vehicle->customer->name ?? '-' }}
-                            </td>
-                            
-                            <td>
-                                {{ $b->vehicle->model_name ?? $b->vehicle->model ?? '-' }} 
-                                <span class="fw-bold">({{ $b->vehicle->plate_number ?? '-' }})</span>
-                            </td>
-                            
-                            <td>
-                                <span class="badge bg-warning text-dark">{{ ucfirst($b->status) }}</span>
-                            </td>
-                            
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('bookings.edit', $b->booking_id) }}" class="btn btn-sm btn-outline-warning">
-                                        <i class="fa-solid fa-pen-to-square"></i> Edit
-                                    </a>
+                  @forelse ($bookings as $index => $b)
+    <tr>
+        {{-- MENGGUNAKAN NOMOR URUT LOOPING BLADE --}}
+        <td class="fw-bold text-primary">
+            BK-{{ str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}
+        </td>
+        
+        <td>{{ \Carbon\Carbon::parse($b->booking_date)->format('d M Y') }}</td>
+        
+        <td>
+            {{ $b->vehicle->customer->full_name ?? $b->vehicle->customer->name ?? '-' }}
+        </td>
+        
+        <td>
+            {{ $b->vehicle->model_name ?? $b->vehicle->model ?? '-' }} 
+            <span class="fw-bold">({{ $b->vehicle->plate_number ?? '-' }})</span>
+        </td>
+        
+        <td>
+            <span class="badge bg-warning text-dark">{{ ucfirst($b->status) }}</span>
+        </td>
+        
+        <td class="text-center">
+            <div class="d-flex justify-content-center gap-1">
+                <a href="{{ route('bookings.edit', $b->booking_id) }}" class="btn btn-sm btn-outline-warning">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                </a>
 
-                                    <form action="{{ route('bookings.destroy', $b->booking_id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus booking ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="fa-solid fa-trash"></i> Hapus
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">Belum ada data booking.</td>
-                        </tr>
-                    @endforelse
+                <form action="{{ route('bookings.destroy', $b->booking_id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus booking ini?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="fa-solid fa-trash"></i> Hapus
+                    </button>
+                </form>
+            </div>
+        </td>
+    </tr>
+@empty
+    <tr>
+        <td colspan="6" class="text-center py-4 text-muted">Belum ada data booking.</td>
+    </tr>
+@endforelse
                 </tbody>
             </table>
         </div>
