@@ -39,7 +39,7 @@
                     <table class="table align-middle mb-0">
                         <thead class="border-bottom bg-white">
                             <tr>
-                                <th class="py-3 ps-3 text-dark fw-bold" style="width: 10%;">#</th>
+                                <th class="py-3 ps-3 text-dark fw-bold" style="width: 10%;">No</th>
                                 <th class="py-3 text-dark fw-bold">Nama Merek</th>
                                 <th class="py-3 text-center text-dark fw-bold" style="width: 30%;">Aksi</th>
                             </tr>
