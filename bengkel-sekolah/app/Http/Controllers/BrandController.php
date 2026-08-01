@@ -14,73 +14,82 @@ class BrandController extends Controller
         return view('brands.index', compact('brands'));
     }
 
-    // 2. Simpan Data Baru
+    // 2. Form Tambah
+    public function create()
+    {
+        return view('brands.create');
+    }
+
+    // 3. Simpan Data Baru
     public function store(Request $request)
     {
         $request->validate([
-            'brand_name' => 'required|unique:brands,brand_name|max:255',
+            'brand_name' => 'required|string|max:100|unique:brands,brand_name',
         ]);
 
-        Brand::create($request->only('brand_name'));
+        Brand::create([
+            'brand_name' => $request->brand_name,
+        ]);
 
-        return redirect()->route('brands.index')->with('success', 'Merek kendaraan berhasil ditambahkan.');
+        return redirect()->route('brands.index')->with('success', 'Data brand berhasil ditambahkan!');
     }
 
-    // 3. Form Edit Data
+    // 4. Form Edit Data
     public function edit($id)
     {
-        $brand = Brand::where('brand_id', $id)->orWhere('id', $id)->firstOrFail();
+        // Hanya cari berdasarkan brand_id
+        $brand = Brand::where('brand_id', $id)->firstOrFail();
+
         return view('brands.edit', compact('brand'));
     }
 
-    // 4. Update Data Merek
+    // 5. Update Data
     public function update(Request $request, $id)
     {
-        $brand = Brand::where('brand_id', $id)->orWhere('id', $id)->firstOrFail();
-
-        $primaryKeyColumn = $brand->getKeyName();
-        $primaryKeyValue  = $brand->getKey();
+        $brand = Brand::where('brand_id', $id)->firstOrFail();
 
         $request->validate([
-            'brand_name' => 'required|max:255|unique:brands,brand_name,' . $primaryKeyValue . ',' . $primaryKeyColumn,
+            'brand_name' => 'required|string|max:100|unique:brands,brand_name,' . $brand->brand_id . ',brand_id',
         ]);
 
-        $brand->update($request->only('brand_name'));
+        $brand->update([
+            'brand_name' => $request->brand_name,
+        ]);
 
-        return redirect()->route('brands.index')->with('success', 'Merek kendaraan berhasil diperbarui.');
+        return redirect()->route('brands.index')->with('success', 'Data brand berhasil diperbarui!');
     }
 
-    // 5. Hapus Sementara (Soft Delete)
+    // 6. Hapus Sementara (Soft Delete)
     public function destroy($id)
     {
-        $brand = Brand::where('brand_id', $id)->orWhere('id', $id)->firstOrFail();
+        $brand = Brand::where('brand_id', $id)->firstOrFail();
         $brand->delete();
 
-        return redirect()->route('brands.index')->with('success', 'Merek dipindahkan ke sampah.');
+        return redirect()->route('brands.index')->with('success', 'Data brand berhasil dihapus!');
     }
 
-    // 6. Tampil Halaman Trash
+    // 7. Menampilkan Halaman Sampah (Trash)
     public function trash()
     {
         $brands = Brand::onlyTrashed()->paginate(10);
         return view('brands.trash', compact('brands'));
     }
 
-    // 7. Restore Data dari Trash
+    // 8. Restore Data
     public function restore($id)
     {
-        $brand = Brand::onlyTrashed()->where('brand_id', $id)->orWhere('id', $id)->firstOrFail();
+        $brand = Brand::onlyTrashed()->where('brand_id', $id)->firstOrFail();
         $brand->restore();
 
-        return redirect()->route('brands.trash')->with('success', 'Merek kendaraan berhasil dipulihkan!');
+        return redirect()->route('brands.trash')->with('success', 'Data brand berhasil dikembalikan!');
     }
 
-    // 8. Hapus Permanen
+    // 9. Hapus Permanen
     public function forceDelete($id)
     {
-        $brand = Brand::onlyTrashed()->where('brand_id', $id)->orWhere('id', $id)->firstOrFail();
+        $brand = Brand::onlyTrashed()->where('brand_id', $id)->firstOrFail();
         $brand->forceDelete();
 
-        return redirect()->route('brands.trash')->with('success', 'Merek kendaraan dihapus permanen!');
+        return redirect()->route('brands.trash')->with('success', 'Data brand berhasil dihapus permanen!');
     }
 }

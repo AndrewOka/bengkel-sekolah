@@ -19,8 +19,8 @@ class BookingController extends Controller
             $query->whereHas('vehicle', function ($q) use ($search) {
                 $q->where('plate_number', 'like', "%{$search}%")
                   ->orWhereHas('customer', function ($c) use ($search) {
-                      $c->where('full_name', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%");
+                      // HANYA mencari berdasarkan 'full_name' sesuai kolom DB
+                      $c->where('full_name', 'like', "%{$search}%");
                   });
             });
         }
@@ -39,17 +39,25 @@ class BookingController extends Controller
         return view('bookings.index', compact('bookings'));
     }
 
-   public function create()
-{
-    $customers = Customer::all();
-    $vehicles = Vehicle::all();
+    public function create()
+    {
+        $customers = Customer::all();
 
-    // Hitung booking yang aktif + 1
-    $nextNumber = Booking::count() + 1;
-    $bookingCode = '#BK-' . $nextNumber;
+        // 1. Ambil ID kendaraan yang sedang memiliki status booking AKTIF
+        $activeVehicleIds = Booking::whereIn('status', ['Pending', 'Proses', 'Reschedule'])
+            ->pluck('vehicle_id')
+            ->toArray();
 
-    return view('bookings.create', compact('bookingCode', 'customers', 'vehicles'));
-}
+        // 2. Ambil hanya kendaraan yang TIDAK ADA dalam daftar booking aktif
+        $vehicles = Vehicle::whereNotIn('vehicle_id', $activeVehicleIds)->get();
+
+        // Hitung urutan kode booking
+        $count = Booking::count(); 
+        $nextNumber = $count + 1;
+        $bookingCode = 'BK-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+        return view('bookings.create', compact('bookingCode', 'customers', 'vehicles'));
+    }
 
     public function store(Request $request)
     {
@@ -57,9 +65,18 @@ class BookingController extends Controller
             'vehicle_id'   => 'required|exists:vehicles,vehicle_id',
             'booking_date' => 'required|date|after_or_equal:today',
             'notes'        => 'nullable|string',
-        ], [
-            'booking_date.after_or_equal' => 'Tanggal booking tidak boleh di masa lalu (harus >= hari ini).'
         ]);
+
+        // Cegah Double Booking jika diakses bersamaan
+        $isAlreadyBooked = Booking::where('vehicle_id', $request->vehicle_id)
+            ->whereIn('status', ['Pending', 'Proses', 'Reschedule'])
+            ->exists();
+
+        if ($isAlreadyBooked) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['vehicle_id' => 'Kendaraan ini sedang dalam proses booking/servis aktif!']);
+        }
 
         Booking::create([
             'vehicle_id'   => $request->vehicle_id,
