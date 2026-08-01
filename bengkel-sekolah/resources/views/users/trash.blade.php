@@ -2,13 +2,11 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold">Manajemen User Bengkel</h4>
-        <div>
-            <a href="{{ route('users.trash') }}" class="btn btn-outline-secondary" title="Tempat Sampah">
-                <i class="fa-solid fa-trash-can me-1"></i> Sampah
-            </a>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-danger"><i class="fa-solid fa-trash-can me-2"></i> Tempat Sampah User</h3>
+        <a href="{{ route('users.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Daftar User
+        </a>
     </div>
 
     @if(session('success'))
@@ -28,7 +26,7 @@
                             <th>Nama Lengkap</th>
                             <th>Username</th>
                             <th>Role / Jabatan</th>
-                            <th>Status</th>
+                            <th>Tanggal Dihapus</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -43,27 +41,27 @@
                                         {{ $user->role->role_name ?? 'Tidak Ada Role' }}
                                     </span>
                                 </td>
-                                <td>
-                                    @if($user->is_active)
-                                        <span class="badge bg-success">Aktif</span>
-                                    @else
-                                        <span class="badge bg-secondary">Nonaktif</span>
-                                    @endif
-                                </td>
+                                <td>{{ $user->deleted_at ? $user->deleted_at->format('d M Y H:i') : '-' }}</td>
                                 <td class="text-center">
-                                    <a href="{{ route('users.edit', $user->user_id) }}" class="btn btn-warning btn-sm">
-                                        Edit
-                                    </a>
-                                    <form action="{{ route('users.destroy', $user->user_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus user ini?')">
+                                    <form action="{{ route('users.restore', $user->user_id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success btn-sm me-1">
+                                            <i class="fa-solid fa-rotate-left me-1"></i> Restore
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ route('users.forceDelete', $user->user_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini secara PERMANEN?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa-solid fa-ban me-1"></i> Hapus Permanen
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">Belum ada data user.</td>
+                                <td colspan="6" class="text-center py-4 text-muted">Tidak ada data user di tempat sampah.</td>
                             </tr>
                         @endforelse
                     </tbody>
