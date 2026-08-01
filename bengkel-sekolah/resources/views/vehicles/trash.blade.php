@@ -18,7 +18,8 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         <table class="table table-hover align-middle mb-0">
-            <thead class="table-dark">
+            {{-- Mengubah table-dark menjadi table-light agar header berwarna terang/putih --}}
+            <thead class="table-light">
                 <tr>
                     <th>Kode</th>
                     <th>No. Plat</th>

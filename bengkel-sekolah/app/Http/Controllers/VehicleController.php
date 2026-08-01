@@ -17,40 +17,58 @@ class VehicleController extends Controller
     }
 
     // 2. Form Tambah
-   public function create()
-{
-    $customers = Customer::all();
-    $brands = Brand::all();
-
-    // Hitung data kendaraan yang aktif + 1
-    $nextNumber = Vehicle::count() + 1;
-    $vehicleCode = 'VH-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-
-    return view('vehicles.create', compact('vehicleCode', 'customers', 'brands'));
-}
-    // 3. Simpan Data
-    public function store(Request $request)
+    public function create()
     {
-        $request->validate([
-            'plate_number' => 'required|string|max:15|unique:vehicles,plate_number',
-            'customer_id'  => 'required',
-            'brand_id'     => 'required',
-            'model_name'   => 'required|string|max:100',
-        ]);
+        $customers = Customer::all();
+        $brands = Brand::all();
 
-        $latestId = Vehicle::withTrashed()->max('vehicle_id') ?? 0;
+        // Cari kode kendaraan 'VH-xxx' terbesar yang ada di DB (termasuk di trash)
+        $latestVehicle = Vehicle::withTrashed()
+            ->where('vehicle_code', 'like', 'VH-%')
+            ->orderByRaw('CAST(SUBSTRING(vehicle_code, 4) AS UNSIGNED) DESC')
+            ->first();
 
-        Vehicle::create([
-            'vehicle_code' => $request->vehicle_code ?? 'VH-' . str_pad($latestId + 1, 4, '0', STR_PAD_LEFT),
-            'plate_number' => $request->plate_number,
-            'customer_id'  => $request->customer_id,
-            'brand_id'     => $request->brand_id,
-            'model_name'   => $request->model_name,
-        ]);
+        if ($latestVehicle) {
+            $lastNumber = (int) substr($latestVehicle->vehicle_code, 3);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
 
-        return redirect()->route('vehicles.index')->with('success', 'Data kendaraan berhasil ditambahkan!');
+        $vehicleCode = 'VH-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+        return view('vehicles.create', compact('vehicleCode', 'customers', 'brands'));
     }
 
+   // 3. Simpan Data
+public function store(Request $request)
+{
+    $request->validate([
+        'plate_number' => 'required|string|max:15|unique:vehicles,plate_number',
+        'customer_id'  => 'required',
+        'brand_id'     => 'required',
+        'model'        => 'required|string|max:100',
+    ]);
+
+    // SELALU generate kode baru yang aman secara otomatis
+    $latestVehicle = Vehicle::withTrashed()
+        ->where('vehicle_code', 'like', 'VH-%')
+        ->orderByRaw('CAST(SUBSTRING(vehicle_code, 4) AS UNSIGNED) DESC')
+        ->first();
+
+    $nextNumber = $latestVehicle ? ((int) substr($latestVehicle->vehicle_code, 3)) + 1 : 1;
+    $autoVehicleCode = 'VH-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+    Vehicle::create([
+        'vehicle_code' => $autoVehicleCode, // Pakai kode hasil generate controller
+        'plate_number' => $request->plate_number,
+        'customer_id'  => $request->customer_id,
+        'brand_id'     => $request->brand_id,
+        'model'        => $request->model,
+    ]);
+
+    return redirect()->route('vehicles.index')->with('success', 'Data kendaraan berhasil ditambahkan!');
+}
     // 4. Form Edit
     public function edit($id)
     {
@@ -70,14 +88,14 @@ class VehicleController extends Controller
             'plate_number' => 'required|string|max:15|unique:vehicles,plate_number,' . $vehicle->vehicle_id . ',vehicle_id',
             'customer_id'  => 'required',
             'brand_id'     => 'required',
-            'model_name'   => 'required|string|max:100',
+            'model'        => 'required|string|max:100',
         ]);
 
         $vehicle->update([
             'plate_number' => $request->plate_number,
             'customer_id'  => $request->customer_id,
             'brand_id'     => $request->brand_id,
-            'model_name'   => $request->model_name,
+            'model'        => $request->model,
         ]);
 
         return redirect()->route('vehicles.index')->with('success', 'Data kendaraan berhasil diperbarui!');

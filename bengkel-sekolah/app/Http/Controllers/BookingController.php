@@ -19,8 +19,8 @@ class BookingController extends Controller
             $query->whereHas('vehicle', function ($q) use ($search) {
                 $q->where('plate_number', 'like', "%{$search}%")
                   ->orWhereHas('customer', function ($c) use ($search) {
-                      $c->where('full_name', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%");
+                      // HANYA mencari berdasarkan 'full_name' sesuai kolom DB
+                      $c->where('full_name', 'like', "%{$search}%");
                   });
             });
         }
