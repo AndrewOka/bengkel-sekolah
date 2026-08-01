@@ -6,12 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        // 1. Buat Tabel Roles terlebih dahulu
+        // 1. Buat Tabel Roles
         Schema::create('roles', function (Blueprint $table) {
             $table->id('role_id');
             $table->string('role_name')->unique();
@@ -30,14 +27,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 3. Buat Tabel Password Reset Tokens (Bawaan Laravel)
+        // 3. Buat Tabel Password Reset Tokens
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
-        // 4. Buat Tabel Sessions (Mencegah error session missing)
+        // 4. Buat Tabel Sessions
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();
@@ -48,9 +45,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('sessions');

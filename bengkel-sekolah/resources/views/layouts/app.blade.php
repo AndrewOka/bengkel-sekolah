@@ -7,7 +7,6 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 <body>
@@ -25,27 +24,41 @@
                 </div>
                 <div class="overflow-hidden">
                     <h6 class="mb-0 fw-bold text-truncate">{{ Auth::user()->full_name ?? Auth::user()->username ?? 'User' }}</h6>
-                    <small class="text-muted d-block text-truncate">{{ Auth::user()->role->role_name ?? 'Admin' }}</small>
+                    <small class="text-muted d-block text-truncate">{{ Auth::user()->role->role_name ?? 'Guest' }}</small>
                 </div>
             </div>
         </div>
 
         <ul class="list-unstyled components">
+            {{-- Dashboard (Semua Role) --}}
             <li class="{{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
                 <a href="{{ route('dashboard.index') }}"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
             </li>
+
+            {{-- Booking (Semua Role) --}}
             <li class="{{ request()->routeIs('bookings.*') ? 'active' : '' }}">
                 <a href="{{ route('bookings.index') }}"><i class="fa-solid fa-calendar-check me-2"></i> Booking</a>
             </li>
+
+            {{-- Customer & Vehicle (Khusus Manager & Admin) --}}
+            @can('manage-master-data')
             <li class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">
                 <a href="{{ route('customers.index') }}"><i class="fa-solid fa-users me-2"></i> Customer</a>
             </li>
             <li class="{{ request()->routeIs('vehicles.*') ? 'active' : '' }}">
                 <a href="{{ route('vehicles.index') }}"><i class="fa-solid fa-car me-2"></i> Vehicle</a>
             </li>
+            @endcan
+
+            {{-- Brand & Users (Khusus Admin) --}}
+            @can('isAdmin')
             <li class="{{ request()->routeIs('brands.*') ? 'active' : '' }}">
                 <a href="{{ route('brands.index') }}"><i class="fa-solid fa-tags me-2"></i> Brand</a>
             </li>
+            <li class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
+                <a href="{{ route('users.index') }}"><i class="fa-solid fa-user-gear me-2"></i> Users</a>
+            </li>
+            @endcan
         </ul>
 
         <div class="p-3 mt-auto">

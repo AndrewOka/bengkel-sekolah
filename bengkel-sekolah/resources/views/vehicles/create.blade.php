@@ -50,12 +50,12 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-bold">Nomor Plat (Unik)</label>
+                <label class="form-label fw-bold">Nomor Plat</label>
                 <input type="text" name="plate_number" class="form-control" placeholder="DK 1234 AB" value="{{ old('plate_number') }}" required>
             </div>
 
             <div class="mb-3">
-                <label for="model" class="form-label fw-bold">Model / Seri Motor</label>
+                <label for="model" class="form-label fw-bold">Model Motor</label>
                 {{-- Direvisi: name="model" dan id="model" agar sesuai kolom database --}}
                 <input type="text" 
                        name="model" 

@@ -2,22 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
-    protected $table = 'users';
-    
-    // Tentukan primary key kustom sesuai database phpMyAdmin kamu
-    protected $primaryKey = 'user_id'; 
+    protected $primaryKey = 'user_id';
 
     protected $fillable = [
+        'full_name',
         'username',
         'password',
-        'full_name',
         'role_id',
         'is_active',
     ];
@@ -27,7 +26,6 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    // Relasi ke Model Role
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id', 'role_id');

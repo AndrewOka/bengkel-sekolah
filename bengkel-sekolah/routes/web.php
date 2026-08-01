@@ -7,7 +7,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\BrandController;
-use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,39 +32,52 @@ Route::middleware('guest')->group(function () {
 // --- ROUTE AUTHENTICATED (Sudah Login) ---
 Route::middleware(['auth'])->group(function () {
 
-    // Logout
+    // Logout & Dashboard
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-    // Custom Route Status Booking
-    Route::patch('/bookings/{id}/update-status', [BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+    // --- FITUR KHUSUS STAFF & ADMIN (Ubah Status Booking) ---
+    Route::patch('/bookings/{id}/update-status', [BookingController::class, 'updateStatus'])
+        ->middleware('can:update-booking-status')
+        ->name('bookings.updateStatus');
 
-    // --- ROUTE TRASH (TEMPAT SAMPAH) BOOKING ---
-    Route::get('/bookings/trash', [BookingController::class, 'trash'])->name('bookings.trash');
-    Route::post('/bookings/{id}/restore', [BookingController::class, 'restore'])->name('bookings.restore');
-    Route::delete('/bookings/{id}/force-delete', [BookingController::class, 'forceDelete'])->name('bookings.forceDelete');
+    // --- FITUR KHUSUS MANAGER & ADMIN (Customer & Vehicle) ---
+    Route::middleware('can:manage-master-data')->group(function () {
+        // Customer CRUD & Trash
+        Route::get('/customers/trash', [CustomerController::class, 'trash'])->name('customers.trash');
+        Route::post('/customers/{id}/restore', [CustomerController::class, 'restore'])->name('customers.restore');
+        Route::delete('/customers/{id}/force-delete', [CustomerController::class, 'forceDelete'])->name('customers.forceDelete');
+        Route::resource('customers', CustomerController::class);
 
-    // --- ROUTE TRASH (TEMPAT SAMPAH) CUSTOMER ---
-    Route::get('/customers/trash', [CustomerController::class, 'trash'])->name('customers.trash');
-    Route::post('/customers/{id}/restore', [CustomerController::class, 'restore'])->name('customers.restore');
-    Route::delete('/customers/{id}/force-delete', [CustomerController::class, 'forceDelete'])->name('customers.forceDelete');
+        // Vehicle CRUD & Trash
+        Route::get('/vehicles/trash', [VehicleController::class, 'trash'])->name('vehicles.trash');
+        Route::post('/vehicles/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
+        Route::delete('/vehicles/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.forceDelete');
+        Route::resource('vehicles', VehicleController::class);
+    });
 
-    // --- ROUTE TRASH (TEMPAT SAMPAH) VEHICLE ---
-    Route::get('/vehicles/trash', [VehicleController::class, 'trash'])->name('vehicles.trash');
-    Route::post('/vehicles/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
-    Route::delete('/vehicles/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.forceDelete');
+    // --- FITUR KHUSUS ADMIN SAJA ---
+    Route::middleware('can:isAdmin')->group(function () {
+        // Brand
+        Route::get('/brands/trash', [BrandController::class, 'trash'])->name('brands.trash');
+        Route::post('/brands/{id}/restore', [BrandController::class, 'restore'])->name('brands.restore');
+        Route::delete('/brands/{id}/force-delete', [BrandController::class, 'forceDelete'])->name('brands.forceDelete');
+        Route::resource('brands', BrandController::class);
 
-    // --- ROUTE TRASH (TEMPAT SAMPAH) BRAND ---
-    Route::get('/brands/trash', [BrandController::class, 'trash'])->name('brands.trash');
-    Route::post('/brands/{id}/restore', [BrandController::class, 'restore'])->name('brands.restore');
-    Route::delete('/brands/{id}/force-delete', [BrandController::class, 'forceDelete'])->name('brands.forceDelete');
+        // --- TRASH & MANAJEMEN USER ---
+        Route::get('/users/trash', [UserController::class, 'trash'])->name('users.trash');
+        Route::post('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
+        Route::delete('/users/{id}/force-delete', [UserController::class, 'forceDelete'])->name('users.forceDelete');
+        
+        // Menggunakan ->except(['create', 'store']) agar pembuatan user terfokus di menu Register
+        Route::resource('users', UserController::class)->except(['create', 'store']);
 
-    // CRUD Master Data & Booking
+        // Trash Booking
+        Route::get('/bookings/trash', [BookingController::class, 'trash'])->name('bookings.trash');
+        Route::post('/bookings/{id}/restore', [BookingController::class, 'restore'])->name('bookings.restore');
+        Route::delete('/bookings/{id}/force-delete', [BookingController::class, 'forceDelete'])->name('bookings.forceDelete');
+    });
+
+    // Route Booking Utama (List & Create)
     Route::resource('bookings', BookingController::class);
-    Route::resource('customers', CustomerController::class);
-    Route::resource('vehicles', VehicleController::class);
-    Route::resource('brands', BrandController::class);
-    Route::resource('users', RegisterController::class);
 });
