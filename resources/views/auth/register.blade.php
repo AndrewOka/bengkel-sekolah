@@ -42,7 +42,7 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold text-secondary small">Role / Jabatan</label>
+            <label class="form-label fw-semibold text-secondary small">Role</label>
             <div class="input-group">
                 <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-check text-muted"></i></span>
                 <select name="role_id" class="form-select bg-light border-start-0" required>
